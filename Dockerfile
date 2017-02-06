@@ -4,8 +4,6 @@ MAINTAINER Huang Rui <vowstar@gmail.com>
 
 ENV EMQ_VERSION=v2.0.7
 
-ADD ./start.sh /start.sh
-
 RUN apk --no-cache add \
         ncurses-terminfo-base \
         ncurses-terminfo \
@@ -73,8 +71,6 @@ RUN apk --no-cache add \
     && make \
     && mkdir /opt && mv /emqttd/_rel/emqttd /opt/emqttd \
     && cd / && rm -rf /emqttd \
-    && mv /start.sh /opt/emqttd/start.sh \
-    && chmod +x /opt/emqttd/start.sh \
     && apk --purge del build-dependencies \
     && rm -rf /var/cache/apk/*
 
@@ -88,18 +84,21 @@ RUN apk --no-cache add --virtual=fetch-dependencies \
   && chmod +x /usr/local/bin/gucci \
   && apk --purge del fetch-dependencies
 
-# configuration processing
-COPY preprocess/ /opt/preprocess
+# startup and configuration processing
+ENV PATH=$PATH:/opt/emqttd/bin
+RUN apk --no-cache add supervisor
+
+COPY preprocess/init.sh /opt/preprocess/init.sh
+COPY preprocess/process.py /opt/preprocess/process.py
+
 RUN apk --no-cache add --virtual=prep-dependencies \
       python \
     && /opt/preprocess/init.sh \
     && apk --purge del prep-dependencies
 
-# startup
-ENV PATH=$PATH:/opt/emqttd/bin
-RUN apk --no-cache add supervisor
 COPY emqtt.ini /etc/supervisor.d/emqtt.ini
 COPY ./clusterize.sh /usr/local/bin/clusterize
+COPY ./start.sh /opt/emqttd/start.sh
 COPY ./myemqenv /myemqenv
 
 HEALTHCHECK --interval=30s --timeout=3s \
