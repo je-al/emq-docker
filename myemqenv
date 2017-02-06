@@ -1,0 +1,4 @@
+#!/bin/sh
+export MY_IP=$(hostname -i | cut -d ' ' -f${IFACE:-1})
+export NN=${EMQ_NODE_NAME_PRE:-n}
+export EMQ_NODE_NAME="${NN}@${MY_IP}"

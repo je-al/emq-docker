@@ -5,23 +5,6 @@
 ## EMQ Base settings
 # Base settings in /opt/emqttd/etc/emq.conf
 
-if [ x"${EMQ_NAME}" = x ]
-then
-EMQ_NAME=$(hostname)
-echo "EMQ_NAME=${EMQ_NAME}"
-fi
-
-if [ x"${EMQ_HOST}" = x ]
-then
-EMQ_HOST=$(cat /etc/hosts | grep $(hostname) | awk '{print $1}')
-echo "EMQ_HOST=${EMQ_HOST}"
-fi
-
-if [ x"${EMQ_NODE_NAME}" = x ]
-then
-EMQ_NODE_NAME="${EMQ_NAME}@${EMQ_HOST}"
-echo "EMQ_NODE_NAME=${EMQ_NODE_NAME}"
-fi
 sed -i -e "s/^#*\s*node.name\s*=\s*.*@.*/node.name = ${EMQ_NODE_NAME}/g" /opt/emqttd/etc/emq.conf
 
 if [ x"${EMQ_NODE_COOKIE}" = x ]
@@ -174,42 +157,9 @@ echo $(echo "${EMQ_LOADED_PLUGINS}."|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "
 for INFILE in $(find /opt/emqttd/etc -name '*.tpl')
 do
   OUTFILE="$(dirname ${INFILE})/$(basename ${INFILE} .tpl)"
-  /usr/local/bin/gucci ${INFILE} > ${OUTFILE} || exit 1
+  gucci ${INFILE} > ${OUTFILE} || exit 1
 done
 
 ## EMQ Main script
-# Start and run emqttd, and when emqttd crashed, this container will stop
-
-/opt/emqttd/bin/emqttd start
-
-# wait and ensure emqttd status is running
-WAIT_TIME=0
-while [ x$(/opt/emqttd/bin/emqttd_ctl status |grep 'is running'|awk '{print $1}') = x ]
-do
-    sleep 1
-    echo '['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:waiting emqttd'
-    WAIT_TIME=`expr ${WAIT_TIME} + 1`
-    if [ ${WAIT_TIME} -gt 5 ]
-    then
-        echo '['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:timeout error'
-        exit 1
-    fi
-done
-
-echo '['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqttd start'
-
-# monitor emqttd is running, or the docker must stop to let docker PaaS know
-# warning: never use infinite loops such as `` while true; do sleep 1000; done`` here
-#          you must let user know emqtt crashed and stop this container,
-#          and docker dispatching system can known and restart this container.
-IDLE_TIME=0
-while [ x$(/opt/emqttd/bin/emqttd_ctl status |grep 'is running'|awk '{print $1}') != x ]
-do  
-    IDLE_TIME=`expr ${IDLE_TIME} + 1`
-    echo '['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqttd running'
-    sleep 20
-done
-
-tail $(ls /opt/emqttd/log/*)
-
-echo '['$(date -u +"%Y-%m-%dT%H:%M:%SZ")']:emqttd stop'
+# Start and run emqttd
+exec emqttd foreground

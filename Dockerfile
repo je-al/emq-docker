@@ -95,10 +95,19 @@ RUN apk --no-cache add --virtual=prep-dependencies \
     && /opt/preprocess/init.sh \
     && apk --purge del prep-dependencies
 
+# startup
+ENV PATH=$PATH:/opt/emqttd/bin
+RUN apk --no-cache add supervisor
+COPY emqtt.ini /etc/supervisor.d/emqtt.ini
+COPY ./myemqenv /myemqenv
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD . /myemqenv; emqttd_ctl status
+
 WORKDIR /opt/emqttd
 
 # start emqttd and initial environments
-CMD ["/opt/emqttd/start.sh"]
+CMD ["/usr/bin/supervisord"]
 
 VOLUME ["/opt/emqttd/log", "/opt/emqttd/data", "/opt/emqttd/plugins", "/opt/emqttd/etc"]
 
