@@ -4,8 +4,6 @@ MAINTAINER Huang Rui <vowstar@gmail.com>
 
 ENV EMQ_VERSION=v2.0.7
 
-ADD ./start.sh /start.sh
-
 RUN apk --no-cache add \
         ncurses-terminfo-base \
         ncurses-terminfo \
@@ -100,6 +98,7 @@ ENV PATH=$PATH:/opt/emqttd/bin
 RUN apk --no-cache add supervisor
 COPY emqtt.ini /etc/supervisor.d/emqtt.ini
 COPY ./clusterize.sh /usr/local/bin/clusterize
+COPY ./start.sh /start.sh
 COPY ./myemqenv /myemqenv
 
 HEALTHCHECK --interval=30s --timeout=3s \
