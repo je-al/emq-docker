@@ -162,4 +162,10 @@ done
 
 ## EMQ Main script
 # Start and run emqttd
-exec emqttd foreground
+trap 'emqttd_ctl cluster leave; kill -TERM $PID' TERM INT
+emqttd foreground &
+PID=$!
+wait $PID
+trap - TERM INT
+wait $PID
+exit $?
