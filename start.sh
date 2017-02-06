@@ -171,8 +171,11 @@ fi
 echo $(echo "${EMQ_LOADED_PLUGINS}."|sed -e "s/^[^A-Za-z0-9_]\{1,\}//g"|sed -e "s/[^A-Za-z0-9_]\{1,\}/\.\n/g") > /opt/emqttd/data/loaded_plugins
 
 ## EMQ Plugins setting
-
-## TODO: Add plugins settings
+for INFILE in $(find /opt/emqttd/etc -name '*.tpl')
+do
+  OUTFILE="$(dirname ${INFILE})/$(basename ${INFILE} .tpl)"
+  /usr/local/bin/gucci ${INFILE} > ${OUTFILE} || exit 1
+done
 
 ## EMQ Main script
 # Start and run emqttd, and when emqttd crashed, this container will stop

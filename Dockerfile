@@ -78,6 +78,23 @@ RUN apk --no-cache add \
     && apk --purge del build-dependencies \
     && rm -rf /var/cache/apk/*
 
+# gucci
+ENV GC_VERSION=v0.0.4
+ENV GC_SHA1=cfdf435666c8d9541c30e39a02da2ac019ceaeb6
+RUN apk --no-cache add --virtual=fetch-dependencies \
+    openssl \
+  && wget -qO /usr/local/bin/gucci "https://github.com/noqcks/gucci/releases/download/${GC_VERSION}/gucci-${GC_VERSION}-linux-amd64" \
+  && echo "${GC_SHA1}  /usr/local/bin/gucci" | sha1sum -c \
+  && chmod +x /usr/local/bin/gucci \
+  && apk --purge del fetch-dependencies
+
+# configuration processing
+COPY preprocess/ /opt/preprocess
+RUN apk --no-cache add --virtual=prep-dependencies \
+      python \
+    && /opt/preprocess/init.sh \
+    && apk --purge del prep-dependencies
+
 WORKDIR /opt/emqttd
 
 # start emqttd and initial environments
