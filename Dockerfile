@@ -99,6 +99,7 @@ RUN apk --no-cache add --virtual=prep-dependencies \
 ENV PATH=$PATH:/opt/emqttd/bin
 RUN apk --no-cache add supervisor
 COPY emqtt.ini /etc/supervisor.d/emqtt.ini
+COPY ./clusterize.sh /usr/local/bin/clusterize
 COPY ./myemqenv /myemqenv
 
 HEALTHCHECK --interval=30s --timeout=3s \
