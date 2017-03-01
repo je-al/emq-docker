@@ -9,7 +9,7 @@ done
 while true
 do
 
-  NODES=$(nslookup "${EMQ_SERVICE_NAME}" | grep Address | cut -d" " -f 3 | grep -v ${MY_IP})
+  NODES=$(dig +short "${EMQ_SERVICE_NAME}" | grep -v ${MY_IP})
 
   if [ -z "${NODES}" ]
   then

@@ -95,7 +95,7 @@ RUN apk --no-cache add --virtual=prep-dependencies \
 
 # startup
 ENV PATH=$PATH:/opt/emqttd/bin
-RUN apk --no-cache add supervisor
+RUN apk --no-cache add supervisor bind-tools
 COPY emqtt.ini /etc/supervisor.d/emqtt.ini
 COPY ./clusterize.sh /usr/local/bin/clusterize
 COPY ./start.sh /start.sh
